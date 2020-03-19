@@ -1,8 +1,12 @@
 # Useful doc on Python magic methods:
 # https://rszalski.github.io/magicmethods/
+
 import itertools
+from math import sqrt
+from functools import total_ordering
 
 
+@total_ordering
 class Vector:
     def __init__(self, arr=None, size=None):
         self.d = list(arr) if arr is not None else (([0] * size) if size else [])
@@ -46,19 +50,20 @@ class Vector:
         return sum(self.d)
 
     def __setitem__(self, key, value):
-        if isinstance(key, Vector): raise ValueError('Redundant check to make conflict')
         self.d[key] = value
 
-    def __cmp__(self, other):
-        # TODO: implement, -1 if self < other, 0 if self == other, 1 if self > other
-        return -1
+    # Implemented __lt__ and __eq__ instead of __cmp__, __cmp__ is not used in python3
+    def __lt__(self, other):
+        return True if self.length() < other.length() else False
+
+    def __eq__(self, other):
+        return True if self.length() == other.length() else False
 
     def __neg__(self):
         return Vector([-x for x in self.d])
 
     def __reversed__(self):
-        # TODO: implement vector element reversal (hint: list(reversed(self.d)))
-        return Vector()
+        return Vector(list(reversed(self.d)))
 
     def __add__(self, other):
         if isinstance(other, int):
@@ -67,16 +72,14 @@ class Vector:
             if len(self) != len(other): raise ValueError('Incompatible size')
             return Vector([self.d[i] + other[i] for i in range(len(self))])
 
+    # Vector subtraction - enable `a - b` on Vector instances
     def __sub__(self, other):
-        # TODO: implement vector subtraction, comment change to make conflict
-        # you may use __add__() and negation, like return (-self + other)
-        return None
+        return self + (-other)
 
     def __mul__(self, other):
         if isinstance(other, int):
-            return None  # TODO: FIX
-        elif isinstance(other, Vector):
-            # TODO: add size checks
+            return Vector([x * other for x in self.d])
+        elif isinstance(other, Vector) and len(self) == len(other):
             if self.is_row == other.is_row:
                 return Vector([self.d[i] * other[i] for i in range(len(self))])  # Hadamard product
             elif self.is_row:
@@ -90,29 +93,28 @@ class Vector:
             raise ValueError('Invalid operand')
 
     def __xor__(self, other):
-        # TODO: support both vector element-wise XOR and by-scalar xor (like in __add__)
-        # TODO: add size check
-        return Vector([self.d[i] ^ other[i] for i in range(len(self))])
+        if isinstance(other, int):
+            return Vector([x ^ other for x in self.d])
+        elif isinstance(other, Vector) and len(self) == len(other):
+            return Vector([self.d[i] ^ other[i] for i in range(len(self))])
+        else:
+            raise ValueError('Invalid operand')
 
     def __and__(self, other):
         if isinstance(other, int):
             return Vector([x & other for x in self.d])
-        elif isinstance(other, Vector):
-            # TODO: add size check
+        elif isinstance(other, Vector) and len(self) == len(other):
             return Vector([self.d[i] & other[i] for i in range(len(self))])
         else:
             raise ValueError('Invalid operand')
 
     def length(self):
         if len(self) == 0:
-            raise ValueError('Undefined for zero-length vector')  # make return 0 instead of an exception
-        # TODO: implement vector length comp. (hint: return math.sqrt(sum(x*x for x in self.d)))
-        return None
+            return 0
+        return sqrt(sum(x * x for x in self.d))
 
     def dot(self, other):
-        # TODO: implement dot-product, i.e., a.b = \sum_i a[i]*b[i],
-        # return sum(self[i]*other[i] for i in range(len(self)))
-        return 0
+        return sum(self[i] * other[i] for i in range(len(self)))
 
     def transpose(self):
         v = Vector(self.d)
@@ -186,3 +188,17 @@ class Matrix:
             m[i][j] = m[i][j] + other[i][j]
         return m
 
+    def __mul__(self, other):
+        if isinstance(other, int):
+            return Vector([x * other for x in self.d])
+        elif isinstance(other, Vector):
+            return Vector([self.d[i] * other[i] for i in range(len(self))])
+
+    def __xor__(self, other):
+        if isinstance(other, int):
+            return Vector([x ^ other for x in self.d])
+        elif isinstance(other, Vector):
+            return Vector([self.d[i] ^ other[i] for i in range(len(self))])
+
+    def length(self):
+        return sqrt(sum(x * x for x in self.d))

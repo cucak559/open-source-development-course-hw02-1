@@ -15,6 +15,11 @@ print(a)
 Operations:
 - Addition with a scalar `a+1`
 - Vector addition: `a + b`
+- Vector substraction: `a - b`
+- Vector multiplication: `a * b`
+- Vector xor: `a ^ b`
+- Vector comapring, eg.: `a < b`
+- Vector length: `a.length()`
 
 ## Installation
 
